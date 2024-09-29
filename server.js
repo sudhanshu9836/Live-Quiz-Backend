@@ -5,6 +5,7 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const Quiz = require('./models/Quiz.js'); // Importing the Quiz model
+const Score = require('./models/Score.js'); 
 require('dotenv').config();
 
 const app = express();
@@ -41,6 +42,8 @@ app.use('/api/admin', adminRoutes);
 let questions = [];
 let currentQuestionIndex = 0;
 let quizStarted = false; // Added flag to track if quiz has started
+const userScores = {}; // Object to track scores of each user
+let questionTimer;
 
 // Fetch all questions on server startup
 const loadQuestions = async () => {
@@ -54,17 +57,33 @@ const loadQuestions = async () => {
 
 loadQuestions(); // Load the questions initially
 
+const startQuestionTimer = () => {
+  questionTimer = setTimeout(() => {
+    if (currentQuestionIndex < questions.length - 1) {
+      currentQuestionIndex++;
+      io.emit('newQuestion', questions[currentQuestionIndex]);
+      startQuestionTimer(); // Restart the timer for the next question
+    } else {
+      io.emit('quizOver');
+      clearTimeout(questionTimer);
+    }
+  }, 30000); // Set to 30 seconds for each question
+};
+
 // Socket.IO Logic
 io.on('connection', (socket) => {
   console.log('New client connected');
 
   // Notify the new client of the current quiz state if it has started
-  socket.on('joinQuiz', () => {
+  socket.on('joinQuiz', (username) => {
     if (quizStarted) {
       socket.emit('newQuestion', questions[currentQuestionIndex]);
     }
+     // Initialize user score
+     userScores[socket.id] = { username: username, score: 0 }; // Initialize their score
   });
 
+  // Admin start Quiz...
   socket.on('startQuiz', () => {
     if (!quizStarted) {
       quizStarted = true; // Set the quiz as started
@@ -72,23 +91,21 @@ io.on('connection', (socket) => {
       io.emit('startQuiz'); // Emit this event to notify clients that the quiz has started
       io.emit('newQuestion', questions[currentQuestionIndex]); // Send the first question to all clients
       console.log(currentQuestionIndex);
+      startQuestionTimer(); // Start the question timer
     }
   });
 
-  // Listen for next question request from admin (only admin should trigger next question)
-  socket.on('getNextQuestion', () => {
-    if (quizStarted) {
-      if (currentQuestionIndex < questions.length - 1) {
-        currentQuestionIndex = currentQuestionIndex + 1; // Move to the next question
-        console.log(currentQuestionIndex);
-        io.emit('newQuestion', questions[currentQuestionIndex]); // Broadcast the new question to all clients
-        // console.log('Next question sent:', questions[currentQuestionIndex]);
-      } else {
-        io.emit('quizOver'); // Emit quiz over event if it's the last question
-        console.log('Quiz is over.');
-      }
+   // Listen for user answers
+   socket.on('answerQuestion', (answer) => {
+    const currentQuestion = questions[currentQuestionIndex];
+    
+    if (answer === currentQuestion.correctAnswer) {
+      // Update user's score
+      userScores[socket.id].score += 1;
+      console.log("new user score update")
+      console.log(`Score updated for ${userScores[socket.id].username}: ${userScores[socket.id].score}`);
     }
-  });
+});
 
   // Handle client disconnection
   socket.on('disconnect', () => {

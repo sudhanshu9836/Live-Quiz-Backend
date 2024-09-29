@@ -46,6 +46,7 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+
 // Route to download Excel with user scores (Admin only, protected by token)
 router.get('/download-scores',verifyToken, async (req, res) => {
   try {
