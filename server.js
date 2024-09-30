@@ -66,7 +66,17 @@ const startQuestionTimer = () => {
     } else {
       io.emit('quizOver');
       clearTimeout(questionTimer);
-    }
+      // After quiz is over, store all scores locally in userScores array
+       const allScores = Object.keys(userScores).map(socketId => {
+        return {
+           username: userScores[socketId].username,
+           score: userScores[socketId].score
+       };
+});
+
+// Now 'allScores' will hold an array of all users' scores and their respective usernames
+console.log("All user scores:", allScores); 
+  }
   }, 30000); // Set to 30 seconds for each question
 };
 

@@ -10,7 +10,7 @@ router.post('/save', async (req, res) => {
   try {
     // Insert all scores directly into the database
     const saveScores = await Score.insertMany(scores.map(({ username, score }) => ({ username, score })));
-
+    console.log(saveScores);
     res.status(201).json({ message: 'All scores saved successfully!', savedScores: saveScores });
   } catch (error) {
     res.status(500).json({ message: 'Error saving scores', error });
