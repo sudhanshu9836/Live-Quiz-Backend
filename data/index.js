@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Quiz = require('../models/Quiz');
 const Data = require('./seed')
 
-const mongoUrl = "mongodb://localhost:27017/live-Quiz-data";
+const mongoUrl = "mongodb+srv://sudhanshu:livequiz@cluster0.dds3d.mongodb.net/Quiz";
 
 
 main()
