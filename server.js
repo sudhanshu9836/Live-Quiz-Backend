@@ -10,15 +10,21 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+
+app.use(cors({
+  origin: "https://live-quiz-eight.vercel.app",
+  methods: ["GET", "POST"]
+}));
 const io = socketIo(server, {
   cors: {
-    origin: "https://live-quiz-eight.vercel.app/",
+    origin: "https://live-quiz-eight.vercel.app",
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ['websocket', 'polling'] 
 });
 
 // Middleware
-app.use(cors());
+
 app.use(express.json());
 
 // MongoDB Connection
