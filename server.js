@@ -28,7 +28,7 @@ const io = socketIo(server, {
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect("mongodb://localhost:27017/live-Quiz-data", { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect("mongodb+srv://sudhanshu:livequiz@cluster0.dds3d.mongodb.net/Quiz", { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
